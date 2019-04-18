@@ -1,0 +1,68 @@
+-- 1. Создать VIEW на основе запросов, которые вы сделали в ДЗ к уроку 3.
+-- Делаю к базе данных с сотрудниками
+
+CREATE VIEW `avg salary` AS
+
+SELECT `depart`.`name` AS 'Отдел', 
+AVG(shtat.salary) AS 'Средняя зарплата' 
+FROM shtat 
+LEFT JOIN depart
+ON depart.id = shtat.dept
+
+GROUP BY shtat.dept
+
+CREATE VIEW `max salary` AS
+SELECT `name`, `lastname`, `position`, `salary` FROM shtat 
+ORDER BY `salary` DESC LIMIT 1
+
+CREATE VIEW `all in shtat` AS
+SELECT 
+`depart`.`name` AS 'Отдел', 
+COUNT(*) AS 'Всего  сотрудников'  
+FROM `shtat` 
+LEFT JOIN `depart`
+ON `depart`.`id` = `shtat`.`dept`
+GROUP BY `shtat`.`dept`
+
+
+-- 2. Создать функцию, которая найдет менеджера по имени и фамилии.
+
+CREATE FUNCTION `find manager` 
+(this_name VARCHAR(25), this_lastname VARCHAR(30))
+
+RETURNS INT
+
+DETERMINISTIC
+
+RETURN 
+(SELECT `id` FROM `shtat` WHERE 
+`name` = this_name AND `lastname` = this_lastname);
+
+-- Что-то у меня не пошло
+SELECT `fund manager`('Артем', 'Кунакбаев')
+-- Error Code: 1305. FUNCTION lesson3.fund manager does not exist
+-- Знаю, Тарас, что будете ругаться, но некогда спрашивать и ждать ответа. Пора сдавать домашку. Поэтому оставлю пока так.
+
+
+-- 3. Создать триггер, который при добавлении нового сотрудника будет выплачивать ему вступительный бонус, занося запись об этом в таблицу salary.
+
+CREATE TRIGGER `add_bonus`
+
+AFTER INSERT ON `shtat`
+
+FOR EACH ROW
+
+INSERT INTO `shtat` (`salary`) VALUE (1000)
+
+
+-- Блин, опять облом...
+INSERT INTO `shtat` (`name`, `lastname`, `dept`, `position`)
+
+VALUES ('Джеймс', 'Бонд', 3, 'Агент')
+
+
+-- Error Code: 1442. Can't update table 'shtat' in stored function/trigger 
+
+-- because it is already used by statement which invoked this stored function/trigger.
+
+-- Как понял, так и попробовал сделать. Надеюсь на разбор типичных ошибок на уроке.

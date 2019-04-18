@@ -1,0 +1,122 @@
+#Первым делом меняю название таблицы countries
+ALTER TABLE `first_data_base`.`countries` 
+
+RENAME TO  `first_data_base`.`_countries` ;
+
+#Затем привожу в соответствие с образцом
+ALTER TABLE `first_data_base`.`_countries` 
+
+CHANGE COLUMN `id_countries` `id` INT NOT NULL AUTO_INCREMENT ,
+
+CHANGE COLUMN `name_country` `title` VARCHAR(150) NOT NULL ;
+
+
+#Меняю название таблицы regions
+ALTER TABLE `first_data_base`.`regions`
+
+RENAME TO `first_data_base`.`_regions`
+
+#Привожу в соответствие
+ALTER TABLE `first_data_base`.`_regions`
+
+CHANGE COLUMN `id_region` `id` INT NOT NULL AUTO_INCREMENT,
+
+CHANGE COLUMN `name_region` `title` VARCHAR(150) NOT NULL,
+
+ADD COLUMN `country_id` INT NOT NULL AFTER `id_region`;
+
+#Добавляю внешний ключ 
+#Делал вручную - ничего не получилось, сделал через workbench.
+#Сначала вставился индекс и, почему-то, две точки с запятой
+ALTER TABLE `first_data_base`.`_regions` 
+
+ADD INDEX `region-country_idx` (`country_id` ASC) VISIBLE;
+;
+
+ALTER TABLE `first_data_base`.`_regions` 
+
+ADD CONSTRAINT `region-country`
+  FOREIGN KEY (`country_id`)
+  
+REFERENCES `first_data_base`.`_countries` (`id`)
+  
+ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+#Все равно не получилось. Вышел такой лог
+Executing:
+ALTER TABLE `first_data_base`.`_regions` 
+ADD CONSTRAINT `region-country`
+  FOREIGN KEY (`country_id`)
+  REFERENCES `first_data_base`.`_countries` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+Operation failed: There was an error while applying the SQL script to the database.
+ERROR 1216: Cannot add or update a child row: a foreign key constraint fails
+SQL Statement:
+ALTER TABLE `first_data_base`.`_regions` 
+ADD CONSTRAINT `region-country`
+  FOREIGN KEY (`country_id`)
+  REFERENCES `first_data_base`.`_countries` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE
+
+#Ладно, продолжаю с последней таблицой
+ALTER TABLE `first_data_base`.`_cities` 
+
+CHANGE COLUMN `id_cities` `id` INT(10) NOT NULL AUTO_INCREMENT ,
+
+CHANGE COLUMN `name_city` `title` VARCHAR(45) NOT NULL ,
+
+ADD INDEX `ind_title` (`title` ASC) VISIBLE;
+;
+
+
+#Пробую добавить внешний ключ
+ALTER TABLE `first_data_base`.`_cities` 
+
+ADD COLUMN `coutry_id` INT NOT NULL AFTER `id`,
+
+ADD INDEX `city-country_idx` (`coutry_id` ASC) VISIBLE;
+;
+
+ALTER TABLE `first_data_base`.`_cities` 
+
+ADD CONSTRAINT `city-country`
+  FOREIGN KEY (`coutry_id`)
+  
+REFERENCES `first_data_base`.`_countries` (`id`)
+  
+ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+
+#То же самое
+Executing:
+ALTER TABLE `first_data_base`.`_cities` 
+ADD COLUMN `coutry_id` INT NOT NULL AFTER `id`,
+ADD INDEX `city-country_idx` (`coutry_id` ASC) VISIBLE;
+;
+ALTER TABLE `first_data_base`.`_cities` 
+ADD CONSTRAINT `city-country`
+  FOREIGN KEY (`coutry_id`)
+  REFERENCES `first_data_base`.`_countries` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+Operation failed: There was an error while applying the SQL script to the database.
+ERROR 1216: Cannot add or update a child row: a foreign key constraint fails
+SQL Statement:
+ALTER TABLE `first_data_base`.`_cities` 
+ADD CONSTRAINT `city-country`
+  FOREIGN KEY (`coutry_id`)
+  REFERENCES `first_data_base`.`_countries` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE
+
+#Тогда последнее, что я могу сделать
+ALTER TABLE `first_data_base`.`_cities` 
+
+ADD COLUMN `important` TINYINT(1) NOT NULL AFTER `id`;
+
