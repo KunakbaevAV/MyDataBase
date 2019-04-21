@@ -1,0 +1,41 @@
+﻿-- 1. Реализовать практические задания на примере других таблиц и запросов. 
+-- По первому заданию - не совсем его понял. Посмотрел код, разбираемый на уроке. Вроде понятно.
+
+
+-- 2. Подумать, какие операции являются транзакционными, и написать несколько примеров с транзакционными запросами.
+
+-- Выключаю автокоммиты
+SET AUTOCOMMIT = 0;
+
+-- Нахожу точное название переменной transaction_isolation
+SHOW VARIABLES LIKE '%transaction%';
+
+-- Выставляю нужный уровень изоляций
+SET transaction_isolation = 'SERIALIZABLE';
+
+-- Создаю транзакцию
+BEGIN;
+SET @maxSalary := (SELECT MAX(`salary`) FROM `shtat`);
+SET @maxId := (SELECT `id` FROM `shtat` WHERE `salary` = @maxSalary);
+SET @minSalary := (SELECT MIN(`salary`) FROM `shtat`);
+SET @minId := (SELECT `id` FROM `shtat` WHERE `salary` = @minSalary);
+UPDATE `shtat` SET `salary` = @minSalary WHERE `id` = @maxId;
+UPDATE `shtat` SET `salary` = @maxSalary WHERE `id` = @minId;
+COMMIT;
+
+-- Задумка следующая - сотруднику с наибольшей зарплатой устанавливается наименьшая,
+-- а сотруднику с наименьшей - наибольшая.
+-- Запрос срабатывает, но значения не меняются.
+
+
+-- 3. Проанализировать несколько запросов с помощью EXPLAIN.
+
+EXPLAIN `shtat`;
+EXPLAIN SELECT `name` FROM `shtat` WHERE `id` = 4;
+
+-- Получившийся результат
+
+1, SIMPLE, shtat, , const, PRIMARY, PRIMARY, 4, const, 1, 100.00, 
+
+-- КПД = 100%, думаю это хорошо )
+
