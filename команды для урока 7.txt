@@ -1,0 +1,65 @@
+-- 
+-- Создаю нового пользователя
+mysql> CREATE USER 'april_user'@'localhost' IDENTIFIED WITH mysql_native_password BY '123123';
+
+-- Наделяю его правами доступа в базу с городами и странами
+mysql> GRANT ALL PRIVILEGES ON `first_data_base`.* TO 'april_user'@'localhost';
+mysql> FLUSH PRIVILEGES;
+
+-- Тесирую
+mysql> quit
+Bye
+
+C:\Program Files\MySQL\MySQL Server 8.0\bin>mysql -u newuser -p
+Enter password: ******
+
+mysql> show schemas;
++--------------------+
+| Database           |
++--------------------+
+| first_data_base    |
+| information_schema |
++--------------------+
+
+mysql> SELECT * FROM first_data_base._cities;
++----+-----------+-----------+---------------------------+
+| id | important | region_id | title                     |
++----+-----------+-----------+---------------------------+
+|  1 |         0 |         1 | Москва                    |
+|  2 |         0 |         2 | Самара                    |
+|  3 |         0 |         3 | Томск                     |
+|  4 |         0 |         4 | Тюмень                    |
+|  5 |         0 |         4 | Тобольск                  |
+|  6 |         0 |         4 | Новосибирск               |
+|  7 |         0 |         6 | Новый Уренгой             |
+|  8 |         0 |         1 | Балашиха                  |
++----+-----------+-----------+---------------------------+
+
+mysql> INSERT INTO `first_data_base`.`_cities` (`important`, `region_id`, `title`) VALUES ('0', '6', 'Когалым');
+Query OK, 1 row affected (0,06 sec)
+
+mysql> SELECT * FROM first_data_base._cities;
++----+-----------+-----------+---------------------------+
+| id | important | region_id | title                     |
++----+-----------+-----------+---------------------------+
+|  1 |         0 |         1 | Москва                    |
+|  2 |         0 |         2 | Самара                    |
+|  3 |         0 |         3 | Томск                     |
+|  4 |         0 |         4 | Тюмень                    |
+|  5 |         0 |         4 | Тобольск                  |
+|  6 |         0 |         4 | Новосибирск               |
+|  7 |         0 |         6 | Новый Уренгой             |
+|  8 |         0 |         1 | Балашиха                  |
+|  9 |         0 |         6 | Когалым                   |
++----+-----------+-----------+---------------------------+
+
+
+-- Делаю бекап базы данных first_data_base
+root@MySQL8:~# mysqldump -u root -p123123 first_data_base > /dumps/dump.sql;
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+
+-- Удалил пару строчек, попробовал восстановить
+mysqldump -u root -p123123 first_data_base < /dumps/mydump.sql;
+
+-- Тут, почему-то, у меня удаленные строчки не появились. Я не понял, почему?
+-- Но в целом домашку сделал, вроде.
