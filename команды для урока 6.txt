@@ -1,0 +1,197 @@
+﻿-- Конфигурирую мастер
+
+server-id = 1
+
+log_bin = /var/log/mysql/bin.log
+
+binlog_do_db = lesson3
+
+-- Перезапускаю mysql
+service mysql restart
+
+change master to master_host='192.168.1.11', master_user='root', master_password='123123', master_log_file='log.000001', master_log_pos=155
+
+
+-- Выполняю sql-команды на мастере
+root@MySQL8:~# mysql -u root -p
+Enter password: ******
+
+mysql> show master status;
++------------+----------+--------------+------------------+-------------------+
+| File       | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++------------+----------+--------------+------------------+-------------------+
+| log.000001 |      155 | lesson3      |                  |                   |
++------------+----------+--------------+------------------+-------------------+
+1 row in set (0,00 sec)
+
+mysql> quit
+Bye
+
+-- Сливаю дамп
+root@MySQL8:~# mysqldump -u root -p123123 lesson_3 > /var/2504.sql
+
+
+
+-- Конфигурирую slave
+
+server-id = 2
+
+log_bin = log.bin
+
+binlog_do_db = lesson_3
+
+relay-log = /var/log/mysql/relay.log
+
+
+-- Загружаю копию базы на нужный сервер
+root@MySQL8:~# mysql -u root -p
+******
+
+mysql> STOP SLAVE;
+Query OK, 0 rows affected, 1 warning (0,00 sec)
+
+mysql> RESET SLAVE;
+Query OK, 0 rows affected (0,00 sec)
+
+mysql> CHANGE MASTER TO MASTER_HOST='192.168.1.11', MASTER_USER='root', MASTER_PASSWORD='123123', MASTER_LOG_FILE='log.000001', MASTER_LOG_POS=155
+
+mysql> START SLAVE;
+Query OK, 0 rows affected (0,03 sec)
+
+mysql> SHOW SLAVE STATUS\G
+*************************** 1. row ***************************
+               Slave_IO_State: 
+                  Master_Host: 192.168.1.11
+                  Master_User: root
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: log.000001
+          Read_Master_Log_Pos: 155
+               Relay_Log_File: relay.000001
+                Relay_Log_Pos: 4
+        Relay_Master_Log_File: log.000001
+             Slave_IO_Running: No
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 155
+              Relay_Log_Space: 155
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File: 
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: 
+            Master_SSL_Cipher: 
+               Master_SSL_Key: 
+        Seconds_Behind_Master: NULL
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 13117
+                Last_IO_Error: Fatal error: The slave I/O thread stops because master and slave have equal MySQL server UUIDs; these UUIDs must be different for replication to work.
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 1
+                  Master_UUID: 
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 190425 20:14:13
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+         Replicate_Rewrite_DB: 
+                 Channel_Name: 
+           Master_TLS_Version: 
+       Master_public_key_path: 
+        Get_master_public_key: 0
+1 row in set (0,00 sec)
+
+-- Что-то не получилось, но думаю, что это из-за клонирования систем. В реальной сети такое быть не должно.
+-- Исправил, как в вы советовали в текстовом файлике
+
+mysql> SHOW SLAVE STATUS\G
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for master to send event
+                  Master_Host: 192.168.1.11
+                  Master_User: root
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: log.000001
+          Read_Master_Log_Pos: 155
+               Relay_Log_File: relay.000003
+                Relay_Log_Pos: 316
+        Relay_Master_Log_File: log.000001
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 155
+              Relay_Log_Space: 514
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File: 
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: 
+            Master_SSL_Cipher: 
+               Master_SSL_Key: 
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error: 
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 1
+                  Master_UUID: 3a90a3b6-f1ab-11e8-8365-080027ad0e39
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+         Replicate_Rewrite_DB: 
+                 Channel_Name: 
+           Master_TLS_Version: 
+       Master_public_key_path: 
+        Get_master_public_key: 0
+1 row in set (0,00 sec)
+
+
+-- С монго уже не успеваю. Запустил его на виртуалке, а он мне выдал:
+
+Cannot connect to the MongoDB at localhost:27017.
+Error:
+Network is unreachable.
+
+-- Уверен, что классная база данных, но пока мне бы с реляционными разобраться. Поэтому оставлю на потом.
